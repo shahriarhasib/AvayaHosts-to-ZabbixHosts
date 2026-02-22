@@ -147,8 +147,8 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
 
 if __name__ == "__main__":
     # Configuration
-    csv_file = 'InceptaExt.csv'  # Change this to your CSV file path
-    output_yaml = 'InceptaExt.yaml'
+    csv_file = 'AvayaExtensionList.csv'  # Change this to your CSV file path
+    output_yaml = 'ZabbixHostList.yaml'
     
     try:
         convert_csv_to_zabbix_yaml(csv_file, output_yaml)
@@ -158,3 +158,4 @@ if __name__ == "__main__":
         print(f"✗ Error during conversion: {str(e)}")
         import traceback
         traceback.print_exc()
+
