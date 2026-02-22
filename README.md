@@ -34,7 +34,7 @@
 
 This Standard Operating Procedure (SOP) provides step-by-step instructions for using the **CSV to Zabbix YAML Converter** Python script on a Windows computer. This tool is designed for **network/IT administrators** who manage Avaya IP Office phone systems and want to import phone extensions in bulk into the **Zabbix network monitoring platform** — even if they have no prior programming experience.
 
-The script reads an Avaya IP Office extension export file (`InceptaExt.csv`), automatically categorizes each device as Avaya or Grandstream, and outputs a `.yaml` file that can be directly imported into Zabbix.
+The script reads an Avaya IP Office extension export file (`AvayaExtensionList.csv`), automatically categorizes each device as Avaya or Grandstream, and outputs a `.yaml` file that can be directly imported into Zabbix.
 
 ### 1.1 What This Script Does
 
@@ -137,10 +137,10 @@ If you see a version number, Python is correctly installed. If you see an error,
 
 ### 4.1 Required File Name
 
-> ⚠️ **The CSV file must be named exactly:** `InceptaExt.csv`
+> ⚠️ **The CSV file must be named exactly:** `AvayaExtensionList.csv`
 
 The script is pre-configured to look for this exact filename. If your file has a different name, you must either:
-- Rename it to `InceptaExt.csv`, **or**
+- Rename it to `AvayaExtensionList.csv`, **or**
 - Change the filename inside the script (covered in [Section 6.3](#63-using-custom-file-paths))
 
 ### 4.2 How to Export from Avaya IP Office
@@ -149,7 +149,7 @@ The script is pre-configured to look for this exact filename. If your file has a
 2. Connect to the IP Office system
 3. Navigate to: **File → Export** or **Reports → Extension List**
 4. Choose **CSV format** when prompted for the export format
-5. **Save the file** as `InceptaExt.csv`
+5. **Save the file** as `AvayaExtensionList.csv`
 
 > 📝 **NOTE:** Avaya IP Office Manager export steps may vary slightly depending on your IP Office version (9.x, 10.x, 11.x). Consult your Avaya documentation if you cannot find the export option.
 
@@ -195,10 +195,10 @@ The script automatically determines the device category based on keywords found 
 
 ### 5.1 Understanding File Paths on Windows
 
-A **file path** is the full location of a file on your computer. For example, if you save a file called `InceptaExt.csv` to your Desktop, its path would be:
+A **file path** is the full location of a file on your computer. For example, if you save a file called `AvayaExtensionList.csv` to your Desktop, its path would be:
 
 ```
-C:\Users\YourName\Desktop\InceptaExt.csv
+C:\Users\YourName\Desktop\AvayaExtensionList.csv
 ```
 
 Replace `YourName` with your actual Windows username.
@@ -210,8 +210,8 @@ For this tool, we recommend creating a dedicated folder to keep all files organi
 ```
 C:\ZabbixConverter\
     ├── convert.py          ← the Python script
-    ├── InceptaExt.csv      ← your Avaya export file
-    └── InceptaExt.yaml     ← output (created automatically)
+    ├── AvayaExtensionList.csv      ← your Avaya export file
+    └── ZabbixHostList.yaml     ← output (created automatically)
 ```
 
 #### 5.2.1 How to Create the Folder
@@ -236,7 +236,7 @@ If you are unsure of your Windows username:
 ### 5.4 Copying Files to the Folder
 
 1. Save the Python script file (`convert.py`) into `C:\ZabbixConverter\`
-2. Copy your `InceptaExt.csv` from Avaya into `C:\ZabbixConverter\`
+2. Copy your `AvayaExtensionList.csv` from Avaya into `C:\ZabbixConverter\`
 
 > 💡 **TIP:** Both the Python script and the CSV file must be in the **same folder** for the default setup to work.
 
@@ -259,7 +259,7 @@ If you are unsure of your Windows username:
 
 ### 6.2 Running the Script (Default Setup)
 
-If your files are in `C:\ZabbixConverter\` and the CSV is named `InceptaExt.csv`:
+If your files are in `C:\ZabbixConverter\` and the CSV is named `AvayaExtensionList.csv`:
 
 1. Open Command Prompt: **Windows Key + R** → type `cmd` → Enter
 2. Navigate to the folder:
@@ -275,13 +275,13 @@ If your files are in `C:\ZabbixConverter\` and the CSV is named `InceptaExt.csv`
    ```
    ✓ Conversion complete!
    ✓ Processed 87 hosts
-   ✓ Output saved to: InceptaExt.yaml
+   ✓ Output saved to: ZabbixHostList.yaml
 
    Summary:
      - Avaya phones: 72
      - Non-Avaya phones: 15
    ```
-6. Your output file `InceptaExt.yaml` is now in `C:\ZabbixConverter\`
+6. Your output file `ZabbixHostList.yaml` is now in `C:\ZabbixConverter\`
 
 ### 6.3 Using Custom File Paths
 
@@ -300,8 +300,8 @@ Scroll to the **bottom** of the script. You will find this section:
 ```python
 if __name__ == "__main__":
     # Configuration
-    csv_file = 'InceptaExt.csv'  # Change this to your CSV file path
-    output_yaml = 'InceptaExt.yaml'
+    csv_file = 'AvayaExtensionList.csv'  # Change this to your CSV file path
+    output_yaml = 'ZabbixHostList.yaml'
 ```
 
 #### 6.3.3 Updating File Paths
@@ -310,7 +310,7 @@ Replace the path values with your actual file locations. Use **forward slashes**
 
 ```python
 # Example: CSV file is on the Desktop
-csv_file = 'C:/Users/YourName/Desktop/InceptaExt.csv'
+csv_file = 'C:/Users/YourName/Desktop/AvayaExtensionList.csv'
 
 # Example: CSV file is in Downloads folder
 csv_file = 'C:/Users/YourName/Downloads/MyPhones.csv'
@@ -334,7 +334,7 @@ csv_file = 'phones_export.csv'   # Or full path if not in same folder
 | Error Message | Likely Cause | Solution |
 |---|---|---|
 | `'python' is not recognized...` | Python not installed or not in PATH | Reinstall Python with "Add to PATH" checked |
-| `FileNotFoundError: InceptaExt.csv not found` | CSV file not in the same folder as script | Copy CSV to `C:\ZabbixConverter\` or update `csv_file` path |
+| `FileNotFoundError: AvayaExtensionList.csv not found` | CSV file not in the same folder as script | Copy CSV to `C:\ZabbixConverter\` or update `csv_file` path |
 | `ModuleNotFoundError: No module named 'yaml'` | PyYAML not installed | Run: `pip install pyyaml` |
 | No output / 0 hosts processed | CSV columns in wrong order or wrong delimiter | Check CSV structure matches [Section 4.3](#43-required-csv-structure) |
 | `UnicodeDecodeError` | CSV file has special characters with wrong encoding | Re-export from Avaya with UTF-8 or save CSV as UTF-8 from Excel |
@@ -354,7 +354,7 @@ csv_file = 'phones_export.csv'   # Or full path if not in same folder
 1. Log into your **Zabbix web interface**
 2. Navigate to: **Configuration → Hosts**
 3. Click the **Import** button in the top-right corner
-4. Click **Browse** and select your `InceptaExt.yaml` file
+4. Click **Browse** and select your `ZabbixHostList.yaml` file
 5. Review the import options — ensure **"Create new hosts"** is checked
 6. Click **Import**
 7. Zabbix will display a summary of imported hosts
@@ -424,9 +424,9 @@ format (YAML) for Zabbix 7.0.
 ## Quick Start
 
 1. Export extension list from Avaya IP Office as CSV
-2. Save as `InceptaExt.csv` in the same folder as `convert.py`
+2. Save as `AvayaExtensionList.csv` in the same folder as `convert.py`
 3. Run: `python convert.py`
-4. Import `InceptaExt.yaml` into Zabbix via Configuration → Hosts → Import
+4. Import `ZabbixHostList.yaml` into Zabbix via Configuration → Hosts → Import
 
 ## CSV Format
 
@@ -473,9 +473,9 @@ See [SOP.md](SOP.md) for complete beginner-friendly instructions.
 |---|---|---|---|
 | 1 | Install Python | python.org → Download → Run installer → Check "Add to PATH" | Python available in Command Prompt |
 | 2 | Install PyYAML | `pip install pyyaml` | "Successfully installed" message |
-| 3 | Export CSV | Avaya IP Office Manager → Export → CSV | `InceptaExt.csv` file created |
+| 3 | Export CSV | Avaya IP Office Manager → Export → CSV | `AvayaExtensionList.csv` file created |
 | 4 | Arrange Files | Script + CSV in `C:\ZabbixConverter\` | Both files in same folder |
-| 5 | Run Script | `cd C:\ZabbixConverter` → `python convert.py` | `InceptaExt.yaml` created |
+| 5 | Run Script | `cd C:\ZabbixConverter` → `python convert.py` | `ZabbixHostList.yaml` created |
 | 6 | Import YAML | Zabbix → Configuration → Hosts → Import | Hosts appear in Zabbix |
 
 ### 9.2 Key Commands (Copy & Paste Ready)
@@ -502,8 +502,8 @@ echo %USERNAME%
 | File | Required Name | Location |
 |---|---|---|
 | Python script | `convert.py` | `C:\ZabbixConverter\` |
-| Avaya CSV export | `InceptaExt.csv` | `C:\ZabbixConverter\` |
-| Zabbix YAML output | `InceptaExt.yaml` | Created automatically |
+| Avaya CSV export | `AvayaExtensionList.csv` | `C:\ZabbixConverter\` |
+| Zabbix YAML output | `ZabbixHostList.yaml` | Created automatically |
 
 ---
 
