@@ -363,111 +363,9 @@ csv_file = 'phones_export.csv'   # Or full path if not in same folder
 
 ---
 
-## 8. Publishing to GitHub
+## 8. Quick Reference Card
 
-### 8.1 Recommended Repository Structure
-
-```
-avaya-to-zabbix-converter/
-├── convert.py               # Main conversion script
-├── README.md                # Documentation
-├── SOP.md                   # This SOP file
-├── sample/
-│   ├── sample_input.csv     # Example CSV (with dummy data only)
-│   └── sample_output.yaml   # Example YAML output
-├── .gitignore               # Exclude real CSV/YAML files
-└── LICENSE                  # e.g., MIT License
-```
-
-### 8.2 .gitignore File
-
-Create a `.gitignore` file to prevent accidentally uploading real phone data:
-
-```gitignore
-# Ignore real data files — never commit actual phone/IP data
-*.csv
-*.yaml
-
-# Allow sample files only
-!sample/*.csv
-!sample/*.yaml
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-.env
-```
-
-### 8.3 README.md Template
-
-Use the following as your GitHub repository `README.md`:
-
-````markdown
-# Avaya IP Office → Zabbix YAML Converter
-
-Converts Avaya IP Office extension export (CSV) to Zabbix bulk-import
-format (YAML) for Zabbix 7.0.
-
-## Features
-
-- Reads Avaya IP Office extension list CSV
-- Auto-detects Avaya vs Grandstream/Other phones
-- Outputs Zabbix 7.0 compatible YAML
-- Assigns ICMP Ping (Avaya) or Grandstream IP Phone template automatically
-
-## Requirements
-
-- Python 3.8+
-- PyYAML: `pip install pyyaml`
-
-## Quick Start
-
-1. Export extension list from Avaya IP Office as CSV
-2. Save as `AvayaExtensionList.csv` in the same folder as `convert.py`
-3. Run: `python convert.py`
-4. Import `ZabbixHostList.yaml` into Zabbix via Configuration → Hosts → Import
-
-## CSV Format
-
-| Column | Field |
-|---|---|
-| Column A (index 0) | Extension Number |
-| Column C (index 2) | Person Name |
-| Column D (index 3) | IP Address |
-| Column F (index 5) | Device Type |
-
-## Output Host Groups
-
-| Group | Monitoring Type |
-|---|---|
-| `Avaya-Phones` | ICMP Ping |
-| `Grandstream-Phones` | SNMP (port 161) |
-| `Non-Avaya-Phones` | SNMP (port 161) |
-
-## Full SOP
-
-See [SOP.md](SOP.md) for complete beginner-friendly instructions.
-````
-
-### 8.4 Uploading to GitHub (Step by Step)
-
-1. Create a free account at **https://github.com** if you don't have one
-2. Click **"New Repository"** → name it `avaya-to-zabbix-converter`
-3. Choose **Public** or **Private** as appropriate for your organization
-4. Check **"Add a README file"** → click **"Create repository"**
-5. Click **"Add file → Upload files"**
-6. Drag all your files into the upload area (script, SOP.md, sample files, .gitignore)
-7. Add a commit message like: `Initial upload: CSV to Zabbix converter with SOP`
-8. Click **"Commit changes"**
-
-> ⚠️ **WARNING:** Never upload real CSV files containing actual extension numbers, names, and IP addresses. Use only the `sample/` folder with **dummy data** for public repositories.
-
----
-
-## 9. Quick Reference Card
-
-### 9.1 Step-by-Step Summary
+### 8.1 Step-by-Step Summary
 
 | Step | Action | Details | Expected Result |
 |---|---|---|---|
@@ -497,7 +395,7 @@ python convert.py
 echo %USERNAME%
 ```
 
-### 9.3 File Naming Cheatsheet
+### 8.3 File Naming Cheatsheet
 
 | File | Required Name | Location |
 |---|---|---|
