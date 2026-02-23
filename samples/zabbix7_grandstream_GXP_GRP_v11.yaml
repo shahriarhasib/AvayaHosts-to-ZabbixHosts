@@ -1,0 +1,523 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18f23041149b3e9d8bb71e3d5f
+      name: 'Templates/Telephony'
+  templates:
+    - uuid: a1b2c3d4e5f647b8a9b0c1d2e3f4a5b6
+      template: 'Grandstream IP Phone'
+      name: 'Grandstream For GXP/GRP Series By Shahriar On 2025.11.02'
+      description: |
+        Template for monitoring Grandstream GXP and GRP series IP phones
+        Monitors: Device availability, SIP registration status, NAT traversal settings, system uptime, SNMP availability
+        
+        Requirements:
+        - SNMP v2c enabled on device
+        - Community string configured (default: public)
+        
+        Grandstream Enterprise OID: .1.3.6.1.4.1.42397
+        - Account 1-6 Registration Status: .1.3.6.1.4.1.42397.1.3.2.1.X.0.0 (where X=1-6)
+          Values: 0=Not Registered, 1=Registered
+        - NAT Traversal Setting: .1.3.6.1.4.1.42397.1.3.4.3.0.0
+          Values: 0=No, 1=STUN, 2=Keep-Alive, 3=UPnP, 4=Auto, 5=VPN
+        
+        Author: Zabbix Template
+        Version: 4.0
+      groups:
+        - name: 'Templates/Telephony'
+      items:
+        # ICMP Ping
+        - uuid: b1c2d3e4f5a647b8a9b0c1d2e3f4a5b6
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          delay: 60s
+          history: 1w
+          valuemap:
+            name: 'Service state'
+          tags:
+            - tag: component
+              value: health
+          triggers:
+            - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5d6
+              expression: 'max(/Grandstream IP Phone/icmpping,#3)=0'
+              name: 'Device is unreachable'
+              priority: HIGH
+              description: 'Device is not responding to ICMP ping for 3 consecutive checks'
+              tags:
+                - tag: scope
+                  value: availability
+        
+        # ICMP Response Time
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5e6
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          delay: 60s
+          history: 1w
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: component
+              value: health
+          triggers:
+            - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5f6
+              expression: 'avg(/Grandstream IP Phone/icmppingsec,5m)>0.5'
+              name: 'High ICMP response time'
+              priority: WARNING
+              description: 'ICMP response time is too high (over 500ms for 5 minutes)'
+        
+        # ICMP Packet Loss
+        - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5a6
+          name: 'ICMP packet loss'
+          type: SIMPLE
+          key: icmppingloss
+          delay: 60s
+          history: 1w
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: component
+              value: health
+          triggers:
+            - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5b7
+              expression: 'min(/Grandstream IP Phone/icmppingloss,5m)>20'
+              name: 'High ICMP packet loss'
+              priority: WARNING
+              description: 'ICMP packet loss is too high (over 20% for 5 minutes)'
+        
+        # System Description
+        - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c6
+          name: 'System description'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: 'system.descr[sysDescr.0]'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'MIB: SNMPv2-MIB'
+          inventory_link: HARDWARE
+          tags:
+            - tag: component
+              value: system
+        
+        # System Object ID
+        - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5d7
+          name: 'System object ID'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.2.0
+          key: 'system.objectid[sysObjectID.0]'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'MIB: SNMPv2-MIB'
+          tags:
+            - tag: component
+              value: system
+        
+        # System Uptime
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5e7
+          name: 'System uptime'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: 'system.uptime[sysUpTime.0]'
+          delay: 60s
+          history: 1w
+          units: uptime
+          description: 'MIB: SNMPv2-MIB'
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: component
+              value: system
+          triggers:
+            - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5f7
+              expression: 'last(/Grandstream IP Phone/system.uptime[sysUpTime.0])<10m'
+              name: 'Device has been restarted'
+              priority: WARNING
+              description: 'Device uptime is less than 10 minutes'
+              manual_close: 'YES'
+        
+        # System Contact
+        - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5a7
+          name: 'System contact details'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.4.0
+          key: 'system.contact[sysContact.0]'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'MIB: SNMPv2-MIB'
+          inventory_link: CONTACT
+          tags:
+            - tag: component
+              value: system
+        
+        # System Name
+        - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5b8
+          name: 'System name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: 'system.name[sysName.0]'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'MIB: SNMPv2-MIB'
+          inventory_link: NAME
+          tags:
+            - tag: component
+              value: system
+        
+        # System Location
+        - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c7
+          name: 'System location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: 'system.location[sysLocation.0]'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'MIB: SNMPv2-MIB'
+          inventory_link: LOCATION
+          tags:
+            - tag: component
+              value: system
+        
+        # Grandstream MAC Address / Serial
+        - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5d8
+          name: 'Phone MAC Address'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.1.0.0
+          key: 'gs.phone.mac'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'Grandstream MIB: Phone MAC address or serial number'
+          inventory_link: SERIALNO_A
+          tags:
+            - tag: component
+              value: system
+        
+        # Grandstream Firmware Versions
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5e8
+          name: 'Firmware Version 1'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.3.1.0.0
+          key: 'gs.firmware.version1'
+          delay: 1h
+          history: 2w
+          trends: '0'
+          value_type: CHAR
+          description: 'Grandstream MIB: Firmware version'
+          tags:
+            - tag: component
+              value: system
+        
+        # SIP Account 1 Registration Status
+        - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5f8
+          name: 'SIP Account 1 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.1.0.0
+          key: 'gs.sip.account1.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 1 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+          triggers:
+            - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5a8
+              expression: 'last(/Grandstream IP Phone/gs.sip.account1.status)=0'
+              name: 'SIP Account 1 not registered'
+              priority: HIGH
+              description: 'SIP Account 1 is not registered'
+              manual_close: 'YES'
+        
+        # SIP Account 2 Registration Status
+        - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5b9
+          name: 'SIP Account 2 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.2.0.0
+          key: 'gs.sip.account2.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 2 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+        
+        # SIP Account 3 Registration Status
+        - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c8
+          name: 'SIP Account 3 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.3.0.0
+          key: 'gs.sip.account3.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 3 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+        
+        # SIP Account 4 Registration Status
+        - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5d9
+          name: 'SIP Account 4 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.4.0.0
+          key: 'gs.sip.account4.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 4 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+        
+        # SIP Account 5 Registration Status
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5e9
+          name: 'SIP Account 5 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.5.0.0
+          key: 'gs.sip.account5.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 5 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+        
+        # SIP Account 6 Registration Status
+        - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5a1
+          name: 'SIP Account 6 Registration Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.1.6.0.0
+          key: 'gs.sip.account6.status'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: SIP Account 6 registration status (0=Not Registered, 1=Registered)'
+          valuemap:
+            name: 'SIP Registration Status'
+          tags:
+            - tag: component
+              value: sip
+        
+        # Phone Status Code
+        - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5a9
+          name: 'Phone Status Code'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.2.2.0.0
+          key: 'gs.phone.status.code'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: Phone status code (meaning varies by model)'
+          tags:
+            - tag: component
+              value: phone
+        
+        # NAT Traversal Setting
+        - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5c2
+          name: 'NAT Traversal Setting'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.42397.1.3.4.3.0.0
+          key: 'gs.nat.traversal'
+          delay: 5m
+          history: 1w
+          value_type: UNSIGNED
+          description: 'Grandstream MIB: NAT Traversal setting (0=No, 1=STUN, 2=Keep-Alive, 3=UPnP, 4=Auto, 5=VPN)'
+          valuemap:
+            name: 'NAT Traversal Mode'
+          tags:
+            - tag: component
+              value: network
+          triggers:
+            - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c2
+              expression: 'last(/Grandstream IP Phone/gs.nat.traversal)<>2'
+              name: 'NAT Keep-Alive is not enabled'
+              priority: WARNING
+              description: 'NAT Traversal is not set to Keep-Alive mode. Current mode: {ITEM.LASTVALUE}'
+              manual_close: 'YES'
+        
+        # SNMP traps (fallback)
+        - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5c0
+          name: 'SNMP traps (fallback)'
+          type: SNMP_TRAP
+          key: snmptrap.fallback
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Item is used to collect all SNMP traps'
+          tags:
+            - tag: component
+              value: network
+        
+        # SNMP agent availability
+        - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c0
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          delay: 60s
+          history: 7d
+          description: 'Availability of SNMP checks on the host'
+          valuemap:
+            name: 'zabbix.host.available'
+          tags:
+            - tag: component
+              value: health
+          triggers:
+            - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5c0
+              expression: 'max(/Grandstream IP Phone/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              opdata: 'Current state: {ITEM.LASTVALUE1}'
+              priority: INFO
+              description: 'SNMP is not available for polling. Check device connectivity and SNMP settings.'
+              dependencies:
+                - name: 'Device is unreachable'
+                  expression: 'max(/Grandstream IP Phone/icmpping,#3)=0'
+        
+        # Phone Availability (Calculated)
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5c0
+          name: 'Phone Availability Status'
+          type: CALCULATED
+          key: 'phone.availability'
+          delay: 1m
+          history: 1w
+          value_type: UNSIGNED
+          params: 'last(//icmpping) and last(//zabbix[host,snmp,available])'
+          description: 'Overall phone availability (1=available, 0=unavailable)'
+          valuemap:
+            name: 'Service state'
+          tags:
+            - tag: component
+              value: health
+      
+      discovery_rules:
+        # Network Interface Discovery
+        - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5c0
+          name: 'Network interface discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#IFNAME},1.3.6.1.2.1.2.2.1.2,{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFTYPE},1.3.6.1.2.1.2.2.1.3]'
+          key: 'net.if.discovery'
+          delay: 1h
+          description: 'Discovering network interfaces'
+          item_prototypes:
+            - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5c0
+              name: 'Interface {#IFNAME}: Operational status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}'
+              key: 'net.if.status[ifOperStatus.{#SNMPINDEX}]'
+              delay: 1m
+              history: 1w
+              description: 'MIB: IF-MIB'
+              valuemap:
+                name: 'IF-MIB::ifOperStatus'
+              tags:
+                - tag: component
+                  value: network
+                - tag: interface
+                  value: '{#IFNAME}'
+              trigger_prototypes:
+                - uuid: a1b2c3d4e5f647a8a9b0c1d2e3f4a5c1
+                  expression: 'last(/Grandstream IP Phone/net.if.status[ifOperStatus.{#SNMPINDEX}])<>1'
+                  name: 'Interface {#IFNAME}: Link down'
+                  priority: AVERAGE
+                  description: 'Network interface is down'
+      
+      macros:
+        - macro: '{$SNMP.TIMEOUT}'
+          value: 5m
+          description: 'Time interval for SNMP availability trigger'
+        - macro: '{$SNMP_COMMUNITY}'
+          value: public
+          description: 'SNMP community string'
+        - macro: '{$ICMP_LOSS_WARN}'
+          value: '20'
+          description: 'ICMP packet loss warning threshold in %'
+        - macro: '{$ICMP_RESPONSE_TIME_WARN}'
+          value: '0.5'
+          description: 'ICMP response time warning threshold in seconds'
+      
+      valuemaps:
+        - uuid: b1c2d3e4f5a647b8a9c0d1e2f3a4b5c9
+          name: 'Service state'
+          mappings:
+            - value: '0'
+              newvalue: Down
+            - value: '1'
+              newvalue: Up
+        
+        - uuid: c1d2e3f4a5b647c8a9d0e1f2a3b4c5e0
+          name: 'zabbix.host.available'
+          mappings:
+            - value: '0'
+              newvalue: 'not available'
+            - value: '1'
+              newvalue: available
+            - value: '2'
+              newvalue: unknown
+        
+        - uuid: d1e2f3a4b5c647d8a9e0f1a2b3c4d5f0
+          name: 'IF-MIB::ifOperStatus'
+          mappings:
+            - value: '1'
+              newvalue: up
+            - value: '2'
+              newvalue: down
+            - value: '3'
+              newvalue: testing
+            - value: '4'
+              newvalue: unknown
+            - value: '5'
+              newvalue: dormant
+            - value: '6'
+              newvalue: notPresent
+            - value: '7'
+              newvalue: lowerLayerDown
+        
+        - uuid: e1f2a3b4c5d647e8a9f0a1b2c3d4e5a0
+          name: 'SIP Registration Status'
+          mappings:
+            - value: '0'
+              newvalue: 'Not Registered'
+            - value: '1'
+              newvalue: Registered
+        
+        - uuid: f1a2b3c4d5e647f8a9a0b1c2d3e4f5a2
+          name: 'NAT Traversal Mode'
+          mappings:
+            - value: '0'
+              newvalue: 'No / Disabled'
+            - value: '1'
+              newvalue: STUN
+            - value: '2'
+              newvalue: Keep-Alive
+            - value: '3'
+              newvalue: UPnP
+            - value: '4'
+              newvalue: Auto
+            - value: '5'
+              newvalue: VPN
