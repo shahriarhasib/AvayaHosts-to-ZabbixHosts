@@ -45,6 +45,7 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
     """
 
     hosts = []
+    skipped_count = 0
 
     # Read CSV file with comma delimiter
     with open(csv_file, 'r', encoding='utf-8') as file:
@@ -53,6 +54,7 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
         for row in csv_reader:
             # Skip blank lines or rows with insufficient data
             if not row or len(row) < 4 or not row[0].strip():
+                skipped_count += 1
                 continue
 
             # Extract data from CSV columns
@@ -63,10 +65,17 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
 
             # Skip if essential data is missing or invalid
             if not ip_address or not host_name_part:
+                skipped_count += 1
                 continue
 
-            # Skip invalid IP addresses
-            if ip_address in ['?', '0.0.0.0', '','Slot']:
+            # Skip invalid IP addresses (missing, placeholder, or whitespace-only)
+            if ip_address in ['?', '0.0.0.0', '', ' '] or not ip_address.strip():
+                skipped_count += 1
+                continue
+
+            # Skip rows where IP field contains 'Slot' or 'Module' labels (e.g., "Slot: 2", "Module: 3")
+            if any(keyword in ip_address for keyword in ['Slot', 'Module', 'slot', 'module']):
+                skipped_count += 1
                 continue
 
             # Construct host name and host identifier
@@ -167,8 +176,9 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
     avaya_count = sum(1 for host in hosts if host['groups'][0]['name'] == 'Avaya-Phones')
     non_avaya_count = len(hosts) - avaya_count
     print(f"\nSummary:")
-    print(f"  - Avaya phones: {avaya_count}")
-    print(f"  - Non-Avaya phones: {non_avaya_count}")
+    print(f"  - Avaya phones     : {avaya_count}")
+    print(f"  - Non-Avaya phones : {non_avaya_count}")
+    print(f"  - Skipped lines    : {skipped_count}")
 
 
 if __name__ == "__main__":
