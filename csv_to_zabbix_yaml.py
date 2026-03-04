@@ -66,7 +66,7 @@ def convert_csv_to_zabbix_yaml(csv_file, output_yaml):
                 continue
 
             # Skip invalid IP addresses
-            if ip_address in ['?', '0.0.0.0', '']:
+            if ip_address in ['?', '0.0.0.0', '','Slot']:
                 continue
 
             # Construct host name and host identifier
